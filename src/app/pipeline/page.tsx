@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
-import { deals, metrics } from "@/lib/mock-data";
+import { metrics } from "@/lib/mock-data";
+import { listOpportunities } from "@/lib/data/opportunities";
 
-export default function PipelinePage() {
+export default async function PipelinePage() {
+  const deals = await listOpportunities();
   return (
     <main className="app-shell">
       <div className="container">
@@ -33,7 +35,7 @@ export default function PipelinePage() {
           <div className="section-title"><span className="mono">02</span><h2>Opportunity register</h2></div>
           <div className="table-wrap">
             <table><thead><tr><th>Account</th><th>Opportunity</th><th>Stage</th><th>Value</th><th>Probability</th><th>Close</th><th>Next step</th><th>Health</th><th /></tr></thead>
-              <tbody>{deals.map((deal, index) => <tr key={`${deal.account}-${deal.opportunity}`}><td><strong>{deal.account}</strong>{deal.attention && <div className="chips"><span className="chip orange">{deal.attention}</span></div>}</td><td>{deal.opportunity}</td><td>{deal.stage}</td><td>{deal.value}</td><td>{deal.probability}%</td><td>{deal.closeDate}</td><td>{deal.nextStep}</td><td>{deal.health}/100</td><td><Link className="icon-link" href={index === 0 ? "/deals/dewa-smart-library" : "#"}><ArrowUpRight size={16} /></Link></td></tr>)}</tbody>
+              <tbody>{deals.map((deal) => <tr key={`${deal.account}-${deal.opportunity}`}><td><strong>{deal.account}</strong>{deal.attention && <div className="chips"><span className="chip orange">{deal.attention}</span></div>}</td><td>{deal.opportunity}</td><td>{deal.stage}</td><td>{deal.value}</td><td>{deal.probability}%</td><td>{deal.closeDate}</td><td>{deal.nextStep}</td><td>{deal.health}/100</td><td>{deal.id ? <Link className="icon-link" href={`/deals/${deal.id}`}><ArrowUpRight size={16} /></Link> : <span className="icon-link disabled" aria-hidden><ArrowUpRight size={16} /></span>}</td></tr>)}</tbody>
             </table>
           </div>
         </section>
