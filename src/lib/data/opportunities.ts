@@ -1,5 +1,7 @@
+import { z } from "zod";
 import { deals as fallbackDeals, type Deal } from "@/lib/mock-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { SupabaseNotConfiguredError } from "@/lib/data/errors";
 
 type OpportunityRow = {
   id: string;
@@ -15,17 +17,16 @@ type OpportunityRow = {
   accounts: { name: string } | { name: string }[] | null;
 };
 
-export async function listOpportunities(): Promise<Deal[]> {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return fallbackDeals;
+type RelatedMeetingRow = { id: string; title: string; started_at: string };
+type RelatedProposalRow = { id: string; title: string; status: string; version: number };
 
-  const { data, error } = await supabase
-    .from("opportunities")
-    .select("id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,accounts(name)")
-    .order("updated_at", { ascending: false });
+type OpportunityDetailRow = OpportunityRow & {
+  meetings: RelatedMeetingRow[] | null;
+  proposals: RelatedProposalRow[] | null;
+};
 
-  if (error) throw new Error(`Unable to load opportunities: ${error.message}`);
-  return ((data ?? []) as OpportunityRow[]).map((row) => ({
+function mapOpportunityRow(row: OpportunityRow): Deal {
+  return {
     id: row.id,
     account: Array.isArray(row.accounts) ? row.accounts[0]?.name ?? "Unassigned" : row.accounts?.name ?? "Unassigned",
     opportunity: row.name,
@@ -37,5 +38,48 @@ export async function listOpportunities(): Promise<Deal[]> {
     nextStep: row.next_step ?? "Define next step",
     health: row.health_score,
     attention: row.attention ?? undefined,
-  }));
+  };
+}
+
+export async function listOpportunities(): Promise<Deal[]> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return fallbackDeals;
+
+  const { data, error } = await supabase
+    .from("opportunities")
+    .select("id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,accounts(name)")
+    .order("updated_at", { ascending: false });
+
+  if (error) throw new Error(`Unable to load opportunities: ${error.message}`);
+  return ((data ?? []) as OpportunityRow[]).map(mapOpportunityRow);
+}
+
+export type OpportunityDetail = Deal & {
+  meetings: { id: string; title: string; startedAt: string }[];
+  proposals: { id: string; title: string; status: string; version: number }[];
+};
+
+export async function getOpportunity(id: string): Promise<OpportunityDetail | null> {
+  if (!z.string().uuid().safeParse(id).success) return null;
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) throw new SupabaseNotConfiguredError();
+
+  const { data, error } = await supabase
+    .from("opportunities")
+    .select(
+      "id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,accounts(name),meetings(id,title,started_at),proposals(id,title,status,version)"
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(`Unable to load opportunity: ${error.message}`);
+  if (!data) return null;
+
+  const row = data as OpportunityDetailRow;
+  return {
+    ...mapOpportunityRow(row),
+    meetings: (row.meetings ?? []).map((m) => ({ id: m.id, title: m.title, startedAt: m.started_at })),
+    proposals: (row.proposals ?? []).map((p) => ({ id: p.id, title: p.title, status: p.status, version: p.version })),
+  };
 }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { authenticatedClient } from "@/lib/api/auth";
 
 const opportunityInput = z.object({
   accountId: z.string().uuid(),
@@ -11,14 +11,6 @@ const opportunityInput = z.object({
   expectedCloseDate: z.string().date().nullable().optional(),
   nextStep: z.string().trim().max(500).nullable().optional(),
 });
-
-async function authenticatedClient() {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return { error: "Supabase is not configured", status: 503 } as const;
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return { error: "Unauthorized", status: 401 } as const;
-  return { supabase, user: data.user } as const;
-}
 
 export async function GET() {
   const auth = await authenticatedClient();

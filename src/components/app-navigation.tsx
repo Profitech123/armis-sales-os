@@ -7,9 +7,9 @@ const items = [
   ["Today", "/"],
   ["Pipeline", "/pipeline"],
   ["Communications", "/communications"],
-  ["Meetings", "/meetings/dewa-smart-library"],
-  ["Proposals", "/proposals/dewa-smart-library"],
-  ["Tenders", "/tenders/enec-ai-governance"],
+  ["Meetings", "/meetings"],
+  ["Proposals", "/proposals"],
+  ["Tenders", "/tenders"],
 ] as const;
 
 export function AppNavigation() {
