@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
-import { deals, metrics } from "@/lib/mock-data";
+import { metrics } from "@/lib/mock-data";
+import { listOpportunities } from "@/lib/data/opportunities";
 
-export default function PipelinePage() {
+export default async function PipelinePage() {
+  const deals = await listOpportunities();
   return (
     <main className="app-shell">
       <div className="container">

@@ -1,19 +1,10 @@
 import Link from "next/link";
 import { ArrowUpRight, CheckCircle2, Clock3, RefreshCw } from "lucide-react";
-import { deals, metrics, priorities } from "@/lib/mock-data";
+import { metrics, priorities } from "@/lib/mock-data";
+import { listOpportunities } from "@/lib/data/opportunities";
 
-const tabs = [
-  { label: "Today", href: "/" },
-  { label: "Pipeline", href: "/pipeline" },
-  { label: "Accounts", href: "#accounts" },
-  { label: "Meetings", href: "#meetings" },
-  { label: "Proposals", href: "#proposals" },
-  { label: "Tenders", href: "#tenders" },
-  { label: "Intelligence", href: "#intelligence" },
-  { label: "Automations", href: "#automations" }
-];
-
-export default function HomePage() {
+export default async function HomePage() {
+  const deals = await listOpportunities();
   return (
     <main className="app-shell">
       <div className="container">
@@ -29,10 +20,6 @@ export default function HomePage() {
           </aside>
         </header>
 
-        <nav className="nav" aria-label="Primary navigation">
-          {tabs.map((tab, index) => <Link className={`button ${index === 0 ? "active" : ""}`} href={tab.href} key={tab.label}>{tab.label}</Link>)}
-        </nav>
-
         <section className="intelligence">
           <p className="mono">01 — One thing to act on today</p>
           <h2>Get the <span className="highlight">DEWA Smart Library concept proposal</span>, robotics shortlist and commercial assumptions approved and sent today.</h2>
@@ -46,7 +33,7 @@ export default function HomePage() {
 
         <section><div className="section-title"><span className="mono">04</span><h2>Active pipeline</h2></div><div className="table-wrap"><table><thead><tr><th>Account</th><th>Opportunity</th><th>Owner</th><th>Stage</th><th>Value</th><th>Probability</th><th>Close</th><th>Next step</th><th>Health</th></tr></thead><tbody>{deals.map((deal, index) => <tr key={`${deal.account}-${deal.opportunity}`}><td><strong>{deal.account}</strong>{deal.attention && <div className="chips"><span className="chip orange">{deal.attention}</span></div>}</td><td>{index === 0 ? <Link href="/deals/dewa-smart-library"><strong>{deal.opportunity}</strong></Link> : deal.opportunity}</td><td>{deal.owner}</td><td>{deal.stage}</td><td>{deal.value}</td><td>{deal.probability}%</td><td>{deal.closeDate}</td><td>{deal.nextStep}</td><td>{deal.health >= 75 ? <CheckCircle2 size={18} /> : <Clock3 size={18} />} {deal.health}/100</td></tr>)}</tbody></table></div><div className="card-actions"><Link className="button dark" href="/pipeline">Open full pipeline</Link></div></section>
 
-        <p className="footer-note mono">MVP scaffold · Mock data enabled · Supabase, Entra ID, Fireflies and n8n integrations follow in the next implementation phase.</p>
+        <p className="footer-note mono">Supabase-backed when configured · Microsoft Entra sign-in available at /sign-in</p>
       </div>
     </main>
   );
