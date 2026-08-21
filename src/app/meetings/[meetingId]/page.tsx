@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, FileText, Sparkles } from "lucide-react";
 import { getMeeting } from "@/lib/data/meetings";
 import { SupabaseNotConfiguredError } from "@/lib/data/errors";
+import { requirePageActor } from "@/lib/auth/authorization";
 
 const insightLabels: Record<string, string> = {
   summary: "Executive summary",
@@ -14,6 +15,7 @@ const insightLabels: Record<string, string> = {
 };
 
 export default async function MeetingWorkspacePage({ params }: { params: Promise<{ meetingId: string }> }) {
+  await requirePageActor();
   const { meetingId } = await params;
 
   let meeting;

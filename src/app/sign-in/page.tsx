@@ -5,7 +5,9 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 export default function SignInPage() {
   async function signIn() {
     const supabase = createSupabaseBrowserClient();
-    const redirectTo = `${window.location.origin}/auth/callback`;
+    const requestedNext = new URLSearchParams(window.location.search).get("next");
+    const safeNext = requestedNext?.startsWith("/") && !requestedNext.startsWith("//") && !requestedNext.includes("\\") ? requestedNext : "/";
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "azure",
       options: { scopes: "email openid profile offline_access", redirectTo },

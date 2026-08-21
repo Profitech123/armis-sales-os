@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { authenticatedClient } from "@/lib/api/auth";
+import { requireApiActor } from "@/lib/auth/authorization";
+import { actorError, apiError, dataAccessError } from "@/lib/api/responses";
 
 const opportunityInput = z.object({
   accountId: z.string().uuid(),
@@ -13,17 +14,19 @@ const opportunityInput = z.object({
 });
 
 export async function GET() {
-  const auth = await authenticatedClient();
-  if ("error" in auth) return Response.json({ error: auth.error }, { status: auth.status });
+  const auth = await requireApiActor();
+  if ("error" in auth) return actorError(auth);
   const { data, error } = await auth.supabase.from("opportunities").select("*,accounts(name)").order("updated_at", { ascending: false });
-  return error ? Response.json({ error: error.message }, { status: 400 }) : Response.json({ data });
+  return error ? dataAccessError("api.opportunities.read_failed", { code: error.code }) : Response.json({ data });
 }
 
 export async function POST(request: Request) {
-  const auth = await authenticatedClient();
-  if ("error" in auth) return Response.json({ error: auth.error }, { status: auth.status });
-  const parsed = opportunityInput.safeParse(await request.json());
-  if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 422 });
+  const auth = await requireApiActor(["seller", "manager", "admin"]);
+  if ("error" in auth) return actorError(auth);
+  let payload: unknown;
+  try { payload = await request.json(); } catch { return apiError("INVALID_REQUEST", 400); }
+  const parsed = opportunityInput.safeParse(payload);
+  if (!parsed.success) return apiError("INVALID_REQUEST", 422, parsed.error.flatten());
   const input = parsed.data;
   const { data, error } = await auth.supabase.from("opportunities").insert({
     owner_user_id: auth.user.id, account_id: input.accountId, name: input.name,
@@ -31,5 +34,7 @@ export async function POST(request: Request) {
     probability: input.probability, expected_close_date: input.expectedCloseDate,
     next_step: input.nextStep,
   }).select().single();
-  return error ? Response.json({ error: error.message }, { status: 400 }) : Response.json({ data }, { status: 201 });
+  return error
+    ? dataAccessError("api.opportunity.create_failed", { actorId: auth.user.id, code: error.code })
+    : Response.json({ data }, { status: 201 });
 }

@@ -1,4 +1,16 @@
 import { z } from "zod";
+
+const tenderRequirementSchema = z.object({
+  id: z.string(),
+  requirement: z.string(),
+  type: z.string(),
+  status: z.string(),
+  owner: z.string(),
+  partner: z.string().nullable().optional().transform((v) => v ?? null),
+  dueDate: z.string().nullable().optional().transform((v) => v ?? null),
+});
+
+const tenderRequirementsSchema = z.array(tenderRequirementSchema);
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SupabaseNotConfiguredError } from "@/lib/data/errors";
 import type { ApprovalStatus } from "@/lib/data/proposals";
@@ -49,7 +61,8 @@ function mapTenderRow(row: TenderRow): TenderListItem {
 }
 
 function parseRequirements(value: unknown): TenderRequirement[] {
-  return Array.isArray(value) ? (value as TenderRequirement[]) : [];
+  const result = tenderRequirementsSchema.safeParse(value);
+  return result.success ? result.data : [];
 }
 
 export async function listTenders(): Promise<TenderListItem[]> {

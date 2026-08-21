@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireApiActor } from "@/lib/auth/authorization";
+import { actorError, apiError, dataAccessError } from "@/lib/api/responses";
 
 const updateInput = z.object({
   name: z.string().trim().min(1).max(200).optional(),
@@ -14,26 +15,32 @@ const updateInput = z.object({
 
 async function context(idPromise: Promise<{ id: string }>) {
   const { id } = await idPromise;
-  if (!z.string().uuid().safeParse(id).success) return { error: "Invalid opportunity id", status: 400 } as const;
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return { error: "Supabase is not configured", status: 503 } as const;
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return { error: "Unauthorized", status: 401 } as const;
-  return { id, supabase } as const;
+  if (!z.string().uuid().safeParse(id).success) return { invalidId: true } as const;
+  const auth = await requireApiActor(["seller", "manager", "admin"]);
+  if ("error" in auth) return auth;
+  return { id, supabase: auth.supabase, actor: auth.actor } as const;
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await context(params);
-  if ("error" in ctx) return Response.json({ error: ctx.error }, { status: ctx.status });
-  const parsed = updateInput.safeParse(await request.json());
-  if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 422 });
+  if ("invalidId" in ctx) return apiError("INVALID_REQUEST", 400);
+  if ("error" in ctx) return actorError(ctx);
+  let payload: unknown;
+  try { payload = await request.json(); } catch { return apiError("INVALID_REQUEST", 400); }
+  const parsed = updateInput.safeParse(payload);
+  if (!parsed.success) return apiError("INVALID_REQUEST", 422, parsed.error.flatten());
   const { data, error } = await ctx.supabase.from("opportunities").update({ ...parsed.data, updated_at: new Date().toISOString() }).eq("id", ctx.id).select().single();
-  return error ? Response.json({ error: error.message }, { status: 400 }) : Response.json({ data });
+  return error
+    ? dataAccessError("api.opportunity.update_failed", { actorId: ctx.actor.id, opportunityId: ctx.id, code: error.code })
+    : Response.json({ data });
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await context(params);
-  if ("error" in ctx) return Response.json({ error: ctx.error }, { status: ctx.status });
+  if ("invalidId" in ctx) return apiError("INVALID_REQUEST", 400);
+  if ("error" in ctx) return actorError(ctx);
   const { error } = await ctx.supabase.from("opportunities").delete().eq("id", ctx.id);
-  return error ? Response.json({ error: error.message }, { status: 400 }) : new Response(null, { status: 204 });
+  return error
+    ? dataAccessError("api.opportunity.delete_failed", { actorId: ctx.actor.id, opportunityId: ctx.id, code: error.code })
+    : new Response(null, { status: 204 });
 }

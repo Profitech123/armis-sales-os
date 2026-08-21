@@ -1,10 +1,12 @@
 export type Deal = {
   id?: string;
+  ownerId?: string;
   account: string;
   opportunity: string;
   owner: string;
   stage: string;
   value: string;
+  valueAmount?: number;
   probability: number;
   closeDate: string;
   nextStep: string;
@@ -41,6 +43,78 @@ export const priorities = [
     action: "Assign owners and initiate commercial review before tomorrow.",
   },
 ];
+
+export type CommunicationItem = {
+  account: string;
+  subject: string;
+  body: string;
+  action: string;
+  tone: "red" | "orange" | "blue" | "green";
+  age: string;
+};
+
+export type CommunicationsQueue = {
+  needsReply: CommunicationItem[];
+  urgent: CommunicationItem[];
+  waiting: CommunicationItem[];
+};
+
+export const communicationsQueue: CommunicationsQueue = {
+  needsReply: [
+    {
+      account: "Microsoft / DEWA",
+      subject: "Architecture input required for proposal",
+      age: "2 days old",
+      body: "Microsoft has not yet confirmed the Copilot and SharePoint reference architecture. The revised customer proposal cannot be finalized without it.",
+      action: "Escalate internally and request confirmation by 14:00 today.",
+      tone: "red",
+    },
+    {
+      account: "Emirates Group",
+      subject: "Entra modernization workshop dates",
+      age: "6 hours old",
+      body: "The identity team requested two options for the technical workshop and a concise list of pre-read items.",
+      action: "Send two workshop options and the pre-read checklist.",
+      tone: "orange",
+    },
+  ],
+  urgent: [
+    {
+      account: "DEWA",
+      subject: "Smart Library proposal milestone overdue",
+      age: "2 days overdue",
+      body: "The concept proposal remains in internal review while the customer is expecting consolidated software and robotics scope.",
+      action: "Resolve scope ownership and submit the revised version today.",
+      tone: "red",
+    },
+    {
+      account: "ENEC",
+      subject: "Tender clarification deadline approaching",
+      age: "48 hours remaining",
+      body: "Two clarification questions remain open around certification evidence and delivery responsibility.",
+      action: "Confirm partner evidence and submit clarification questions.",
+      tone: "orange",
+    },
+  ],
+  waiting: [
+    {
+      account: "Aldar",
+      subject: "Business case feedback",
+      age: "Waiting 5 days",
+      body: "The client is reviewing the AI adoption and identity governance business case. No response has been recorded since submission.",
+      action: "Follow up with the sponsor and confirm next review meeting.",
+      tone: "blue",
+    },
+    {
+      account: "AD Ports",
+      subject: "Copilot Studio stakeholder list",
+      age: "Waiting 3 days",
+      body: "The account team is waiting for the confirmed business stakeholders before preparing the discovery brief.",
+      action: "Request the stakeholder list and proposed meeting window.",
+      tone: "green",
+    },
+  ],
+};
 
 export const deals: Deal[] = [
   { account: "DEWA", opportunity: "AI Smart Library", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 2.50M", probability: 50, closeDate: "30 Nov", nextStep: "Submit revised concept", health: 64, attention: "Overdue" },

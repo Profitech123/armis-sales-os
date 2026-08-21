@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getProposal } from "@/lib/data/proposals";
 import { SupabaseNotConfiguredError } from "@/lib/data/errors";
+import { requirePageActor } from "@/lib/auth/authorization";
 
 const statusTone: Record<string, string> = {
   draft: "",
@@ -13,6 +14,7 @@ const statusTone: Record<string, string> = {
 };
 
 export default async function ProposalWorkspacePage({ params }: { params: Promise<{ proposalId: string }> }) {
+  await requirePageActor();
   const { proposalId } = await params;
 
   let proposal;

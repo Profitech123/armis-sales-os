@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { listMeetings } from "@/lib/data/meetings";
+import { requirePageActor } from "@/lib/auth/authorization";
 
 export default async function MeetingsPage() {
+  await requirePageActor();
   const meetings = await listMeetings();
 
   return (

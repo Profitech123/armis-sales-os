@@ -1,4 +1,13 @@
 import { z } from "zod";
+
+const proposalSectionSchema = z.object({
+  title: z.string(),
+  body: z.string(),
+});
+
+const proposalContentSchema = z.object({
+  sections: z.array(proposalSectionSchema),
+});
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SupabaseNotConfiguredError } from "@/lib/data/errors";
 
@@ -43,14 +52,8 @@ function mapProposalRow(row: ProposalRow): ProposalListItem {
 }
 
 function parseContent(value: unknown): ProposalContent {
-  if (
-    value &&
-    typeof value === "object" &&
-    Array.isArray((value as { sections?: unknown }).sections)
-  ) {
-    return value as ProposalContent;
-  }
-  return { sections: [] };
+  const result = proposalContentSchema.safeParse(value);
+  return result.success ? result.data : { sections: [] };
 }
 
 export async function listProposals(): Promise<ProposalListItem[]> {

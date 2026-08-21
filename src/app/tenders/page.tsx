@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { listTenders } from "@/lib/data/tenders";
+import { requirePageActor } from "@/lib/auth/authorization";
 
 const statusTone: Record<string, string> = {
   draft: "",
@@ -11,6 +12,7 @@ const statusTone: Record<string, string> = {
 };
 
 export default async function TendersPage() {
+  await requirePageActor();
   const tenders = await listTenders();
 
   return (

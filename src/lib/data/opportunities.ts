@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { deals as fallbackDeals, type Deal } from "@/lib/mock-data";
+import type { Deal } from "@/lib/mock-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SupabaseNotConfiguredError } from "@/lib/data/errors";
 
 type OpportunityRow = {
   id: string;
+  owner_user_id: string;
   name: string;
   owner_name: string;
   stage: string;
@@ -28,11 +29,13 @@ type OpportunityDetailRow = OpportunityRow & {
 function mapOpportunityRow(row: OpportunityRow): Deal {
   return {
     id: row.id,
+    ownerId: row.owner_user_id,
     account: Array.isArray(row.accounts) ? row.accounts[0]?.name ?? "Unassigned" : row.accounts?.name ?? "Unassigned",
     opportunity: row.name,
     owner: row.owner_name,
     stage: row.stage,
     value: new Intl.NumberFormat("en-AE", { style: "currency", currency: "AED", maximumFractionDigits: 0 }).format(row.value_amount),
+    valueAmount: row.value_amount,
     probability: row.probability,
     closeDate: row.expected_close_date ? new Intl.DateTimeFormat("en-AE", { day: "numeric", month: "short" }).format(new Date(row.expected_close_date)) : "TBC",
     nextStep: row.next_step ?? "Define next step",
@@ -43,11 +46,16 @@ function mapOpportunityRow(row: OpportunityRow): Deal {
 
 export async function listOpportunities(): Promise<Deal[]> {
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return fallbackDeals;
+  const mockAllowed = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+  if (mockAllowed) {
+    const { deals } = await import("@/lib/mock-data");
+    return deals;
+  }
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("opportunities")
-    .select("id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,accounts(name)")
+    .select("id,owner_user_id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,accounts(name)")
     .order("updated_at", { ascending: false });
 
   if (error) throw new Error(`Unable to load opportunities: ${error.message}`);
@@ -68,7 +76,7 @@ export async function getOpportunity(id: string): Promise<OpportunityDetail | nu
   const { data, error } = await supabase
     .from("opportunities")
     .select(
-      "id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,accounts(name),meetings(id,title,started_at),proposals(id,title,status,version)"
+      "id,owner_user_id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,accounts(name),meetings(id,title,started_at),proposals(id,title,status,version)"
     )
     .eq("id", id)
     .maybeSingle();

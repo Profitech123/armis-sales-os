@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CheckSquare2 } from "lucide-react";
 import { getTender } from "@/lib/data/tenders";
 import { SupabaseNotConfiguredError } from "@/lib/data/errors";
+import { requirePageActor } from "@/lib/auth/authorization";
 
 const statusTone: Record<string, string> = {
   draft: "",
@@ -20,6 +21,7 @@ const requirementTone: Record<string, string> = {
 };
 
 export default async function TenderWorkspacePage({ params }: { params: Promise<{ tenderId: string }> }) {
+  await requirePageActor();
   const { tenderId } = await params;
 
   let tender;

@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { getOpportunity } from "@/lib/data/opportunities";
 import { SupabaseNotConfiguredError } from "@/lib/data/errors";
+import { requirePageActor } from "@/lib/auth/authorization";
+import { updateOpportunity } from "@/app/actions/sales";
 
 export default async function DealPage({ params }: { params: Promise<{ opportunityId: string }> }) {
+  const actor = await requirePageActor();
   const { opportunityId } = await params;
 
   let deal;
@@ -43,6 +46,8 @@ export default async function DealPage({ params }: { params: Promise<{ opportuni
         </header>
 
         <section className="intelligence"><p className="mono">Next step</p><h2>{deal.nextStep}</h2>{deal.attention && <p>Flagged: {deal.attention}</p>}</section>
+
+        {deal.ownerId === actor.id && <section><div className="section-title"><span className="mono">Edit</span><h2>Opportunity details</h2></div><form className="card form-grid form-grid-wide" action={updateOpportunity}><input type="hidden" name="id" value={deal.id} /><label>Name<input name="name" defaultValue={deal.opportunity} required maxLength={200} /></label><label>Stage<input name="stage" defaultValue={deal.stage} required maxLength={80} /></label><label>Value (AED)<input name="valueAmount" type="number" min="0" step="0.01" defaultValue={deal.valueAmount} required /></label><label>Probability<input name="probability" type="number" min="0" max="100" defaultValue={deal.probability} required /></label><label>Expected close<input name="expectedCloseDate" type="date" /></label><label className="field-span">Next step<textarea name="nextStep" defaultValue={deal.nextStep === "Define next step" ? "" : deal.nextStep} maxLength={500} rows={2} /></label><button className="button dark" type="submit">Save opportunity</button></form></section>}
 
         <div className="workspace-grid">
           <div className="workspace-main">
