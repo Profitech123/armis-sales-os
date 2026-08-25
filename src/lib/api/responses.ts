@@ -10,7 +10,8 @@ export type PublicApiErrorCode =
   | "RATE_LIMITED"
   | "PAYLOAD_TOO_LARGE"
   | "REPLAY_REJECTED"
-  | "FORWARDING_FAILED";
+  | "FORWARDING_FAILED"
+  | "CONFLICT";
 
 const statusMessages: Record<PublicApiErrorCode, string> = {
   UNAUTHORIZED: "Authentication is required.",
@@ -23,6 +24,7 @@ const statusMessages: Record<PublicApiErrorCode, string> = {
   PAYLOAD_TOO_LARGE: "The request payload is too large.",
   REPLAY_REJECTED: "The request timestamp or identifier is invalid.",
   FORWARDING_FAILED: "The downstream request could not be completed.",
+  CONFLICT: "The record changed after it was loaded.",
 };
 
 export function apiError(code: PublicApiErrorCode, status: number, details?: unknown) {

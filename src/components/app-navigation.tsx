@@ -10,6 +10,7 @@ const items = [
   ["Pipeline", "/pipeline"],
   ["Activities", "/activities"],
   ["Search", "/search"],
+  ["GTM", "/gtm"],
   ["Communications", "/communications"],
   ["Meetings", "/meetings"],
   ["Proposals", "/proposals"],

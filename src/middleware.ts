@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAnonKey } from "@/lib/supabase/keys";
 import { apiError } from "@/lib/api/responses";
+import { validateProductionConfiguration } from "@/lib/config/production";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -9,7 +10,12 @@ export async function middleware(request: NextRequest) {
   const key = getSupabaseAnonKey();
   const pathname = request.nextUrl.pathname;
   const publicPage = pathname === "/sign-in" || pathname === "/auth/callback";
-  const publicMachineEndpoint = pathname === "/api/health" || pathname === "/api/webhooks/fireflies";
+  const publicMachineEndpoint = pathname === "/api/health" || pathname === "/api/webhooks/fireflies" || pathname === "/api/webhooks/explee";
+
+  if (process.env.NODE_ENV === "production" && !validateProductionConfiguration(process.env).valid && !publicPage && !publicMachineEndpoint) {
+    if (pathname.startsWith("/api/")) return apiError("SERVICE_UNAVAILABLE", 503);
+    return NextResponse.redirect(new URL("/sign-in?error=invalid_production_configuration", request.url));
+  }
 
   if (!url || !key) {
     if (process.env.NODE_ENV === "production" && !publicPage && !publicMachineEndpoint) {

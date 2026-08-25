@@ -9,6 +9,7 @@ const protectedPages = [
   "src/app/communications/page.tsx",
   "src/app/connectors/page.tsx",
   "src/app/deals/[opportunityId]/page.tsx",
+  "src/app/gtm/page.tsx",
   "src/app/meetings/page.tsx",
   "src/app/meetings/[meetingId]/page.tsx",
   "src/app/pipeline/page.tsx",

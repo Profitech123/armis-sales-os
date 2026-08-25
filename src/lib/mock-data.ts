@@ -1,6 +1,7 @@
 export type Deal = {
   id?: string;
   ownerId?: string;
+  accountId?: string;
   account: string;
   opportunity: string;
   owner: string;
