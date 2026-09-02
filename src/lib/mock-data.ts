@@ -16,9 +16,9 @@ export type Deal = {
 };
 
 export const metrics = [
-  { label: "Active pipeline", value: "AED 18.4M", note: "+12% since last month" },
-  { label: "Weighted pipeline", value: "AED 8.9M", note: "48% effective probability" },
-  { label: "At risk", value: "AED 4.1M", note: "6 opportunities require action" },
+  { label: "Active pipeline", value: "AED 3.49M", note: "20 open opportunities" },
+  { label: "Weighted pipeline", value: "AED 1.43M", note: "41% effective probability" },
+  { label: "At risk", value: "AED 3.34M", note: "18 opportunities past target close date" },
 ];
 
 export const priorities = [
@@ -118,9 +118,24 @@ export const communicationsQueue: CommunicationsQueue = {
 };
 
 export const deals: Deal[] = [
-  { account: "DEWA", opportunity: "AI Smart Library", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 2.50M", probability: 50, closeDate: "30 Nov", nextStep: "Submit revised concept", health: 64, attention: "Overdue" },
-  { account: "Emirates Group", opportunity: "Entra ID Modernization", owner: "Elio Berberi", stage: "Solutioning", value: "AED 4.80M", probability: 45, closeDate: "15 Dec", nextStep: "Confirm technical workshop", health: 57, attention: "Stale" },
-  { account: "Aldar", opportunity: "AI Security & Governance", owner: "Elio Berberi", stage: "Qualified", value: "AED 3.20M", probability: 40, closeDate: "20 Dec", nextStep: "Business case review", health: 71 },
-  { account: "e&", opportunity: "Copilot Security & Governance", owner: "Sales Team", stage: "Negotiation", value: "AED 2.10M", probability: 70, closeDate: "30 Sep", nextStep: "Commercial clarification", health: 82 },
-  { account: "AD Ports", opportunity: "Agentic AI Platform", owner: "Elio Berberi", stage: "Discovery", value: "AED 1.40M", probability: 30, closeDate: "31 Jan", nextStep: "Stakeholder mapping", health: 69 },
+  { account: "Solution Plus", opportunity: "Adoption program- Copilot for Microsoft 365", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 13K", valueAmount: 13176.67, probability: 50, closeDate: "31 Jul", nextStep: "Finalize adoption program rollout plan", health: 50, attention: "Overdue" },
+  { account: "Microsoft Dubai", opportunity: "Adoption program- Copilot for Microsoft 365", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 34K", valueAmount: 33753.33, probability: 75, closeDate: "31 Jul", nextStep: "Confirm rollout timeline with stakeholders", health: 75, attention: "Overdue" },
+  { account: "Emirates Investment Authority", opportunity: "DLP Consultation and Implementation", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 143K", valueAmount: 143196.43, probability: 25, closeDate: "30 Sep", nextStep: "Complete DLP consultation scope", health: 40 },
+  { account: "Dubai Electricity & Water Authority", opportunity: "Ricardo AI 2026-2027", owner: "Elio Berberi", stage: "Solutioning", value: "AED 140K", valueAmount: 140000, probability: 100, closeDate: "31 Aug", nextStep: "Confirm resource allocation and contract terms", health: 85, attention: "Overdue" },
+  { account: "Dubai Electricity & Water Authority", opportunity: "Alexandre 2026 S2 and 2027 S1", owner: "Elio Berberi", stage: "Solutioning", value: "AED 140K", valueAmount: 140000, probability: 100, closeDate: "31 Aug", nextStep: "Confirm resource allocation and contract terms", health: 85, attention: "Overdue" },
+  { account: "Dubai Electricity & Water Authority", opportunity: "Jose - Data Resource", owner: "Elio Berberi", stage: "Solutioning", value: "AED 140K", valueAmount: 140000, probability: 100, closeDate: "31 Jul", nextStep: "Confirm resource allocation and contract terms", health: 85, attention: "Overdue" },
+  { account: "Dubai Electricity & Water Authority", opportunity: "Vitor - Security Resource", owner: "Elio Berberi", stage: "Solutioning", value: "AED 228K", valueAmount: 228000, probability: 100, closeDate: "31 Aug", nextStep: "Confirm resource allocation and contract terms", health: 85, attention: "Overdue" },
+  { account: "Dubai Electricity & Water Authority", opportunity: "AI Resource - Sophia", owner: "Elio Berberi", stage: "Solutioning", value: "TBC", valueAmount: 0, probability: 20, closeDate: "TBC", nextStep: "Confirm resourcing scope and close date", health: 45, attention: "Stale" },
+  { account: "Sharjah Airport", opportunity: "(OPTIONAL - SUPPORT YEAR 2) IGA Implementation Microsoft ENTRA", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 80K", valueAmount: 79714.29, probability: 25, closeDate: "10 Jul", nextStep: "Confirm optional support year 2 renewal", health: 40, attention: "Overdue" },
+  { account: "Federal Authority for Government Human Resources", opportunity: "Data - Empowered Idea Management System's", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 19K", valueAmount: 18953.33, probability: 25, closeDate: "30 Jun", nextStep: "Finalize data workstream scope", health: 40, attention: "Overdue" },
+  { account: "Federal Authority for Government Human Resources", opportunity: "CorpApps - Empowered Idea Management System's", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 304K", valueAmount: 304131.67, probability: 25, closeDate: "30 Jun", nextStep: "Finalize corporate apps workstream scope", health: 40, attention: "Overdue" },
+  { account: "UAE - Ministry of Finance", opportunity: "IGA Implementation Microsoft ENTRA", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 429K", valueAmount: 429188.97, probability: 25, closeDate: "31 Jul", nextStep: "Progress Entra IGA implementation plan", health: 40, attention: "Overdue" },
+  { account: "Sharjah Airport", opportunity: "IGA Implementation Microsoft ENTRA", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 243K", valueAmount: 243395.71, probability: 25, closeDate: "30 Jun", nextStep: "Progress Entra IGA implementation plan", health: 40, attention: "Overdue" },
+  { account: "Dubai Electricity & Water Authority", opportunity: "Data Team - Data Governance & AI-Readiness Initiative", owner: "Elio Berberi", stage: "Solutioning", value: "AED 1.33M", valueAmount: 1333584, probability: 25, closeDate: "31 Jul", nextStep: "Advance data governance readiness assessment", health: 40, attention: "Overdue" },
+  { account: "Federal Authority for Government Human Resources", opportunity: "AI - Empowered Idea Management System's", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 35K", valueAmount: 34781.67, probability: 25, closeDate: "30 Jun", nextStep: "Finalize AI workstream scope", health: 40, attention: "Overdue" },
+  { account: "Armis MEA", opportunity: "Internal - Purview Implementation Services", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 18K", valueAmount: 17910, probability: 50, closeDate: "30 Jun", nextStep: "Complete internal Purview rollout", health: 50, attention: "Overdue" },
+  { account: "Strata Manufacturing PJSC", opportunity: "Purview Implementation Services", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 40K", valueAmount: 40260, probability: 50, closeDate: "9 Jul", nextStep: "Complete Purview implementation plan", health: 50, attention: "Overdue" },
+  { account: "Strata Manufacturing PJSC", opportunity: "Contract Approval Migration", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 39K", valueAmount: 38610.67, probability: 75, closeDate: "10 Jul", nextStep: "Finalize contract approval migration plan", health: 75, attention: "Overdue" },
+  { account: "Armis MEA", opportunity: "Entra ID Integration and MFA", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 67K", valueAmount: 67320, probability: 50, closeDate: "30 Jun", nextStep: "Complete Entra ID and MFA integration", health: 50, attention: "Overdue" },
+  { account: "Sharjah Airport", opportunity: "Intranet", owner: "Elio Berberi", stage: "Proposal preparation", value: "AED 40K", valueAmount: 40310, probability: 25, closeDate: "22 Jul", nextStep: "Finalize intranet delivery plan", health: 40, attention: "Overdue" },
 ];

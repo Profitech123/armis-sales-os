@@ -118,12 +118,18 @@ const activitySchema = z.object({
 export async function saveActivity(_previous: MutationState, formData: FormData): Promise<MutationState> {
   const auth = await requireApiActor(["seller", "manager", "admin"]); if ("error" in auth) return { ok: false, message: "Your session is not authorized." };
   const parsed = activitySchema.safeParse(values(formData)); if (!parsed.success) return invalid(parsed);
-  const v = parsed.data; const now = new Date().toISOString(); const payload = { kind: v.kind, subject: v.subject, details: v.details || null, priority: v.priority, status: v.status, assignee_user_id: v.assigneeId ?? auth.user.id, account_id: v.accountId, contact_id: v.contactId, opportunity_id: v.opportunityId, due_at: v.dueAt, reminder_at: v.reminderAt, completed_at: v.status === "completed" ? now : null, cancelled_at: v.status === "cancelled" ? now : null, cancellation_reason: v.status === "cancelled" ? v.cancellationReason : null };
+  const v = parsed.data; const now = new Date().toISOString();
+  // assignee_user_id is intentionally left out of the shared payload: this form
+  // never exposes that field, and unconditionally writing it on every save would
+  // silently revert a manager's governed reassignment (assign_activity RPC) back
+  // to the current owner every time they save an unrelated edit.
+  const payload = { kind: v.kind, subject: v.subject, details: v.details || null, priority: v.priority, status: v.status, account_id: v.accountId, contact_id: v.contactId, opportunity_id: v.opportunityId, due_at: v.dueAt, reminder_at: v.reminderAt, completed_at: v.status === "completed" ? now : null, cancelled_at: v.status === "cancelled" ? now : null, cancellation_reason: v.status === "cancelled" ? v.cancellationReason : null };
   if (!v.id) {
-    const { error } = await auth.supabase.from("activities").insert({ ...payload, owner_user_id: auth.user.id });
+    const { error } = await auth.supabase.from("activities").insert({ ...payload, assignee_user_id: v.assigneeId ?? auth.user.id, owner_user_id: auth.user.id });
     if (error) return errorMessage(error);
   } else {
-    const { data, error } = await auth.supabase.from("activities").update({ ...payload, record_version: (v.version ?? 0) + 1 }).eq("id", v.id).eq("record_version", v.version ?? 0).select("id").maybeSingle();
+    const updatePayload = v.assigneeId ? { ...payload, assignee_user_id: v.assigneeId } : payload;
+    const { data, error } = await auth.supabase.from("activities").update({ ...updatePayload, record_version: (v.version ?? 0) + 1 }).eq("id", v.id).eq("record_version", v.version ?? 0).select("id").maybeSingle();
     if (error || !data) return error ? errorMessage(error) : { ok: false, conflict: true, message: "This activity changed. Refresh before saving." };
   }
   revalidatePath("/activities"); revalidatePath("/"); return { ok: true, message: v.id ? "Activity saved." : "Activity created." };
