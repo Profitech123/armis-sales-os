@@ -12,7 +12,7 @@ const opportunityInput = z.object({
 });
 
 const listQuery=z.object({q:z.string().trim().max(80).default(""),stage:z.string().trim().max(40).optional(),limit:z.coerce.number().int().min(1).max(100).default(25),cursor:z.string().max(500).optional(),sort:z.enum(["updated_desc","name_asc"]).default("updated_desc")});
-const cursorSchema=z.object({updated_at:z.string().datetime().optional(),name:z.string().max(200).optional(),id:z.string().uuid()});
+const cursorSchema=z.object({updated_at:z.string().datetime({offset:true}).optional(),name:z.string().max(200).optional(),id:z.string().uuid()});
 
 export async function GET(request:Request) {
   const auth = await requireApiActor();

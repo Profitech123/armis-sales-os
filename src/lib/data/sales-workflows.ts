@@ -66,7 +66,7 @@ export async function listAccounts(): Promise<AccountListItem[]> {
 }
 
 export type AccountsSort = "name_asc" | "updated_desc";
-export const accountsCursorSchema = z.object({ name: z.string().max(200).optional(), updated_at: z.string().datetime().optional(), id: z.string().uuid() });
+export const accountsCursorSchema = z.object({ name: z.string().max(200).optional(), updated_at: z.string().datetime({ offset: true }).optional(), id: z.string().uuid() });
 
 export async function listAccountsPage(options: { q?: string; sort?: AccountsSort; cursor?: string; limit?: number } = {}): Promise<Page<AccountListItem>> {
   const supabase = await createSupabaseServerClient();
@@ -120,7 +120,7 @@ export async function listContacts(): Promise<ContactListItem[]> {
 }
 
 export type ContactsSort = "name_asc" | "updated_desc";
-export const contactsCursorSchema = z.object({ last_name: z.string().max(100).optional(), updated_at: z.string().datetime().optional(), id: z.string().uuid() });
+export const contactsCursorSchema = z.object({ last_name: z.string().max(100).optional(), updated_at: z.string().datetime({ offset: true }).optional(), id: z.string().uuid() });
 
 export async function listContactsPage(options: { q?: string; accountId?: string; sort?: ContactsSort; cursor?: string; limit?: number } = {}): Promise<Page<ContactListItem>> {
   const supabase = await createSupabaseServerClient();
@@ -227,8 +227,8 @@ export async function getActivityById(id: string): Promise<ActivityListItem | nu
 
 export type ActivitiesSort = "due_asc" | "updated_desc";
 export const activitiesCursorSchema = z.object({
-  due_at: z.string().datetime().nullable().optional(),
-  updated_at: z.string().datetime().optional(),
+  due_at: z.string().datetime({ offset: true }).nullable().optional(),
+  updated_at: z.string().datetime({ offset: true }).optional(),
   id: z.string().uuid(),
 });
 

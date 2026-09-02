@@ -70,7 +70,7 @@ export async function listOpportunities(): Promise<Deal[]> {
 }
 
 export type OpportunitiesSort = "updated_desc" | "name_asc";
-export const opportunitiesCursorSchema = z.object({ name: z.string().max(200).optional(), updated_at: z.string().datetime().optional(), id: z.string().uuid() });
+export const opportunitiesCursorSchema = z.object({ name: z.string().max(200).optional(), updated_at: z.string().datetime({ offset: true }).optional(), id: z.string().uuid() });
 
 /**
  * The pipeline listing's cursor-paginated counterpart to listOpportunities().

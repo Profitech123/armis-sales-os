@@ -185,6 +185,17 @@ describe("listActivitiesPage", () => {
     createSupabaseServerClient.mockResolvedValue(supabase);
     await expect(listActivitiesPage({})).rejects.toThrow(/Unable to load activities/);
   });
+
+  it("accepts a cursor timestamp in PostgREST's real +00:00 offset format instead of silently discarding it", async () => {
+    const { listActivitiesPage } = await import("@/lib/data/sales-workflows");
+    const { encodeCursor } = await import("@/lib/data/pagination");
+    const cursor = encodeCursor({ due_at: "2026-01-01T00:00:00+00:00", id: VALID_ID });
+    const { supabase, calls } = createSupabaseStub({ data: [], error: null });
+    createSupabaseServerClient.mockResolvedValue(supabase);
+    await listActivitiesPage({ cursor });
+    const orCall = findCall(calls, "or")[0];
+    expect(orCall?.args[0]).toContain("due_at.gt.2026-01-01T00:00:00+00:00");
+  });
 });
 
 describe("getActivityById", () => {
