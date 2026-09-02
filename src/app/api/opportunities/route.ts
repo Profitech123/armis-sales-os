@@ -20,7 +20,7 @@ export async function GET(request:Request) {
   const url=new URL(request.url);const parsed=listQuery.safeParse(Object.fromEntries(url.searchParams));if(!parsed.success)return apiError("INVALID_REQUEST",422,parsed.error.flatten());
   const input=parsed.data;const cursor=decodeCursor(cursorSchema,input.cursor);if(input.cursor&&!cursor)return apiError("INVALID_REQUEST",400,{cursor:"Invalid cursor"});
   const limit=clampLimit(input.limit);
-  let query=auth.supabase.from("opportunities").select("*,accounts(name)").limit(limit+1);
+  let query=auth.supabase.from("opportunities").select("id,owner_user_id,account_id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,updated_at,accounts(name)").limit(limit+1);
   if(input.q)query=query.ilike("name",`%${sanitizeSearchTerm(input.q)}%`);if(input.stage)query=query.eq("stage",input.stage);
   if(input.sort==="name_asc"){query=query.order("name").order("id");if(cursor?.name){const value=quoteFilterValue(cursor.name);query=query.or(`name.gt.${value},and(name.eq.${value},id.gt.${cursor.id})`);}}else{query=query.order("updated_at",{ascending:false}).order("id",{ascending:false});if(cursor?.updated_at)query=query.or(`updated_at.lt.${cursor.updated_at},and(updated_at.eq.${cursor.updated_at},id.lt.${cursor.id})`);}
   const { data, error } = await query;if(error)return dataAccessError("api.opportunities.read_failed", { code: error.code });const page=(data??[]).slice(0,limit);const last=page.at(-1);const nextCursor=(data?.length??0)>limit&&last?encodeCursor(input.sort==="name_asc"?{name:last.name,id:last.id}:{updated_at:last.updated_at,id:last.id}):null;

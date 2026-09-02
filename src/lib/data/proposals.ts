@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { SupabaseNotConfiguredError } from "@/lib/data/errors";
 
 const proposalSectionSchema = z.object({
   title: z.string(),
@@ -8,8 +10,6 @@ const proposalSectionSchema = z.object({
 const proposalContentSchema = z.object({
   sections: z.array(proposalSectionSchema),
 });
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { SupabaseNotConfiguredError } from "@/lib/data/errors";
 
 export type ApprovalStatus = "draft" | "pending" | "approved" | "changes_requested" | "rejected";
 

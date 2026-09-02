@@ -10,6 +10,12 @@ export function hasAnyRole(role: AppRole, allowed: readonly AppRole[]): boolean 
   return allowed.includes(role);
 }
 
-export function canDecideApproval(actorId: string, ownerId: string, approverId: string | null): boolean {
-  return Boolean(approverId && actorId === approverId && actorId !== ownerId);
+/**
+ * Requires the actor to hold the "approver" role in addition to being the
+ * record's designated approver, so a downgraded approver (e.g. demoted to
+ * "seller" while still listed as approverId on an in-flight request) can no
+ * longer decide it.
+ */
+export function canDecideApproval(actorId: string, actorRole: AppRole, ownerId: string, approverId: string | null): boolean {
+  return Boolean(approverId && actorId === approverId && actorId !== ownerId && actorRole === "approver");
 }

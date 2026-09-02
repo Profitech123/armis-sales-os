@@ -9,6 +9,26 @@ const maxPayloadBytes = 256 * 1024;
 const replayWindowMs = 5 * 60 * 1000;
 const rateLimitWindowMs = 60 * 1000;
 const rateLimitMax = 60;
+
+/**
+ * `replayCache` and `rateWindow` are process-local, best-effort guards only:
+ * on a multi-instance deployment (e.g. Vercel) each instance gets its own
+ * memory, so neither one is a real security boundary — an attacker can
+ * bypass both by hitting a different instance. They exist purely to reject
+ * obvious same-instance repeats cheaply, without a DB round trip.
+ *
+ * The authoritative, cross-instance replay guard is the unique constraint
+ * on `webhook_events(provider, external_event_id)` claimed in
+ * `runAnalysisPipeline` below, whose "already_processed"/"already_processing"
+ * outcomes block downstream n8n forwarding regardless of which instance
+ * handled the original request — see the check in POST(). That guard is
+ * only exercised while AI_TRANSCRIPT_ANALYSIS_ENABLED=true; with it disabled,
+ * this in-memory cache is the only replay protection forwarding gets, which
+ * is a known gap for that configuration. Likewise, rate limiting here is
+ * per-instance only — production-grade distributed rate limiting requires a
+ * shared store (e.g. an Upstash Redis integration via the Vercel
+ * Marketplace), which is intentionally not introduced by this fix.
+ */
 const replayCache = new Map<string, number>();
 let rateWindow = { startedAt: 0, count: 0 };
 
@@ -275,6 +295,13 @@ export async function POST(request: Request) {
   const analysis = process.env.AI_TRANSCRIPT_ANALYSIS_ENABLED === "true"
     ? await runAnalysisPipeline(parsed.data).catch((): AnalysisOutcome => ({ stored: false, reason: "analysis_failed" }))
     : { stored: false, reason: "ai_analysis_disabled" };
+
+  // Cross-instance replay guard: the DB unique constraint on webhook_events
+  // is authoritative, unlike the in-memory replayCache above. If it saw this
+  // transcriptId before (on this instance or another), don't forward again.
+  if (analysis.reason === "already_processed" || analysis.reason === "already_processing") {
+    return Response.json({ accepted: true, forwarding: "skipped_duplicate", analysis }, { status: 202 });
+  }
 
   if (process.env.FIREFLIES_FORWARDING_ENABLED !== "true") {
     return Response.json({ accepted: true, forwarding: "disabled", analysis }, { status: 202 });

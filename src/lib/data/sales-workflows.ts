@@ -276,7 +276,7 @@ export async function searchSalesRecords(rawQuery: string): Promise<SearchResult
   if (query.length < 2) return [];
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
-  const pattern = `%${query.replaceAll("%", "").replaceAll("_", "")}%`;
+  const pattern = `%${sanitizeSearchTerm(query)}%`;
   const [accounts, contactsByFirstName, contactsByLastName, contactsByEmail, opportunities, activities] = await Promise.all([
     supabase.from("accounts").select("id,name,industry").is("archived_at", null).ilike("name", pattern).limit(10),
     supabase.from("contacts").select("id,first_name,last_name,email,account_id").is("archived_at", null).ilike("first_name", pattern).limit(10),

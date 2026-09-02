@@ -18,7 +18,7 @@ export function decodeCursor<T extends z.ZodTypeAny>(schema: T, value: string | 
 }
 
 export function sanitizeSearchTerm(q: string): string {
-  return q.replaceAll("%", "").replaceAll("_", "");
+  return q.replaceAll("\\", "").replaceAll("%", "").replaceAll("_", "");
 }
 
 /**

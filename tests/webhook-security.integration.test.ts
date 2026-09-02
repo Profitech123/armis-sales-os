@@ -1,8 +1,58 @@
 import { createHmac } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { POST } from "@/app/api/webhooks/fireflies/route";
 
 const secret = "local-test-secret-not-a-credential";
+
+/**
+ * Fake service-role client backing the "cross-instance replay" test below.
+ * The webhook_events map is created once in this factory's closure so it
+ * persists across multiple createSupabaseAdminClient() calls within a test
+ * — simulating the real unique-constraint table shared by every instance,
+ * as opposed to the route's per-instance in-memory replayCache.
+ */
+vi.mock("@/lib/supabase/admin", () => {
+  const webhookEvents = new Map<string, { status: string }>();
+  const profileId = "22222222-2222-4222-8222-222222222222";
+
+  const fakeAdmin = {
+    from(table: string) {
+      if (table === "webhook_events") {
+        return {
+          insert: (row: { external_event_id: string; status: string }) => {
+            if (webhookEvents.has(row.external_event_id)) {
+              return Promise.resolve({ error: { code: "23505" } });
+            }
+            webhookEvents.set(row.external_event_id, { status: row.status });
+            return Promise.resolve({ error: null });
+          },
+          select: () => ({
+            eq: () => ({
+              eq: (_col: string, id: string) => ({
+                maybeSingle: () => Promise.resolve({ data: webhookEvents.get(id) ?? null }),
+              }),
+            }),
+          }),
+          update: () => ({
+            eq: () => ({
+              eq: () => Promise.resolve({ error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === "profiles") {
+        return { select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { id: profileId } }) }) }) };
+      }
+      if (table === "meetings") {
+        return { upsert: () => ({ select: () => ({ single: () => Promise.reject(new Error("simulated mid-pipeline crash")) }) }) };
+      }
+      throw new Error(`unexpected table in fake admin client: ${table}`);
+    },
+  };
+
+  return { createSupabaseAdminClient: () => fakeAdmin };
+});
+
+const { POST } = await import("@/app/api/webhooks/fireflies/route");
 
 function signedRequest(body: string, eventId = crypto.randomUUID(), timestamp = Math.floor(Date.now() / 1000)) {
   const signature = createHmac("sha256", secret).update(`${timestamp}.${eventId}.${body}`).digest("hex");
@@ -56,6 +106,29 @@ describe("Fireflies webhook security", () => {
     expect((await POST(signedRequest(body, crypto.randomUUID(), Math.floor(Date.now() / 1000) - 600))).status).toBe(409);
     const oversized = signedRequest("x".repeat(256 * 1024 + 1));
     expect((await POST(oversized)).status).toBe(413);
+  });
+
+  it("blocks duplicate forwarding across a replayed transcriptId even with a different webhook id, via the DB-level guard", async () => {
+    vi.stubEnv("FIREFLIES_WEBHOOK_SECRET", secret);
+    vi.stubEnv("AI_TRANSCRIPT_ANALYSIS_ENABLED", "true");
+    vi.stubEnv("FIREFLIES_FORWARDING_ENABLED", "true");
+    vi.stubEnv("N8N_FIREFLIES_WEBHOOK_URL", "http://n8n.example/webhook");
+    vi.stubEnv("N8N_WEBHOOK_SECRET", "n8n-secret");
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 200 }));
+    const body = JSON.stringify({ transcriptId: "cross-instance-dup", hostEmail: "seller@example.com", transcriptText: "hello world" });
+
+    // Two distinct webhook ids simulate two different instances/deliveries for
+    // the same underlying transcript — the in-memory replayCache would miss
+    // this (different key), so only the DB-level unique constraint on
+    // webhook_events(provider, external_event_id) catches it.
+    const first = await POST(signedRequest(body, crypto.randomUUID()));
+    expect(first.status).toBe(202);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    const second = await POST(signedRequest(body, crypto.randomUUID()));
+    expect(second.status).toBe(202);
+    await expect(second.json()).resolves.toMatchObject({ forwarding: "skipped_duplicate", analysis: { reason: "already_processing" } });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
   it("rate limits authenticated machine requests", async () => {

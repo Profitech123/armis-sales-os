@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { SupabaseNotConfiguredError } from "@/lib/data/errors";
+import type { ApprovalStatus } from "@/lib/data/proposals";
 
 const tenderRequirementSchema = z.object({
   id: z.string(),
@@ -11,9 +14,6 @@ const tenderRequirementSchema = z.object({
 });
 
 const tenderRequirementsSchema = z.array(tenderRequirementSchema);
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { SupabaseNotConfiguredError } from "@/lib/data/errors";
-import type { ApprovalStatus } from "@/lib/data/proposals";
 
 export type TenderRequirement = {
   id: string;

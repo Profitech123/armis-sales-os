@@ -14,8 +14,12 @@ describe("authorization roles", () => {
   });
 
   it("prevents owners from deciding their own approval", () => {
-    expect(canDecideApproval("seller-1", "seller-1", "seller-1")).toBe(false);
-    expect(canDecideApproval("approver-1", "seller-1", "approver-1")).toBe(true);
-    expect(canDecideApproval("admin-1", "seller-1", null)).toBe(false);
+    expect(canDecideApproval("seller-1", "seller", "seller-1", "seller-1")).toBe(false);
+    expect(canDecideApproval("approver-1", "approver", "seller-1", "approver-1")).toBe(true);
+    expect(canDecideApproval("admin-1", "admin", "seller-1", null)).toBe(false);
+  });
+
+  it("rejects a designated approver whose role has been downgraded", () => {
+    expect(canDecideApproval("approver-1", "seller", "seller-1", "approver-1")).toBe(false);
   });
 });
