@@ -15,7 +15,12 @@ type ApiActorAuthorization =
   | { error: string; status: number }
   | { supabase: SupabaseClient; user: User; actor: CurrentActor };
 
+const mockActorAllowed = () => process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+const mockActor: CurrentActor = { id: "00000000-0000-4000-8000-000000000001", email: "demo@armis.local", displayName: "Demo User", role: "admin" };
+
 export const getCurrentActor = cache(async (): Promise<CurrentActor | null> => {
+  if (mockActorAllowed()) return mockActor;
+
   const auth = await authenticatedClient();
   if ("error" in auth) return null;
 
