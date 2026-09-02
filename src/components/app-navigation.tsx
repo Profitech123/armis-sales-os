@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignOutButton } from "@/components/sign-out-button";
 
 const items = [
   ["Today", "/"],
@@ -28,7 +27,6 @@ export function AppNavigation() {
           const active = href === "/" ? pathname === href : pathname.startsWith(href.split("/").slice(0, 2).join("/"));
           return <Link aria-current={active ? "page" : undefined} className={`nav-link ${active ? "active" : ""}`} href={href} key={href}>{label}</Link>;
         })}
-        {pathname !== "/sign-in" && <SignOutButton />}
       </div>
     </nav>
   );

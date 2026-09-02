@@ -38,7 +38,7 @@ function values(formData: FormData) {
 
 export async function createAccount(formData: FormData) {
   const auth = await requireApiActor(["seller", "manager", "admin"]);
-  if ("error" in auth) redirect("/sign-in");
+  if ("error" in auth) redirect("/?error=unavailable");
   const parsed = accountSchema.safeParse(values(formData));
   if (!parsed.success) redirect("/accounts?error=invalid_account");
   const duplicate = await auth.supabase.from("accounts").select("id").ilike("name", parsed.data.name).is("archived_at", null).limit(1);
@@ -51,7 +51,7 @@ export async function createAccount(formData: FormData) {
 
 export async function createContact(formData: FormData) {
   const auth = await requireApiActor(["seller", "manager", "admin"]);
-  if ("error" in auth) redirect("/sign-in");
+  if ("error" in auth) redirect("/?error=unavailable");
   const parsed = contactSchema.safeParse(values(formData));
   if (!parsed.success) redirect("/accounts?error=invalid_contact");
   const input = parsed.data;
@@ -64,7 +64,7 @@ export async function createContact(formData: FormData) {
 
 export async function createOpportunity(formData: FormData) {
   const auth = await requireApiActor(["seller", "manager", "admin"]);
-  if ("error" in auth) redirect("/sign-in");
+  if ("error" in auth) redirect("/?error=unavailable");
   const parsed = opportunitySchema.safeParse(values(formData));
   if (!parsed.success) redirect("/pipeline?error=invalid_opportunity");
   const input = parsed.data;

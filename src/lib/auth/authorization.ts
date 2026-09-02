@@ -31,7 +31,7 @@ export const getCurrentActor = cache(async (): Promise<CurrentActor | null> => {
 
 export async function requirePageActor(allowed?: readonly AppRole[]): Promise<CurrentActor> {
   const actor = await getCurrentActor();
-  if (!actor) redirect("/sign-in");
+  if (!actor) redirect("/?error=no_profile");
   if (allowed && !hasAnyRole(actor.role, allowed)) redirect("/?error=forbidden");
   return actor;
 }

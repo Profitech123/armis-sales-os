@@ -1,24 +1,10 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { getSupabaseAnonKey } from "@/lib/supabase/keys";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
+/**
+ * Authentication is disabled, so there is no user session to scope
+ * row-level security by. Every server-side read/write now goes through
+ * the service-role client instead, matching `authenticatedClient()`.
+ */
 export async function createSupabaseServerClient() {
-  const cookieStore = await cookies();
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = getSupabaseAnonKey();
-
-  if (!url || !key) return null;
-
-  return createServerClient(url, key, {
-    cookies: {
-      getAll: () => cookieStore.getAll(),
-      setAll: (values) => {
-        try {
-          values.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-        } catch {
-          // Server Components cannot set cookies; proxy.ts refreshes sessions.
-        }
-      },
-    },
-  });
+  return createSupabaseAdminClient();
 }

@@ -11,7 +11,7 @@ const roleChangeSchema = z.object({ userId: z.string().uuid(), role: z.enum(appR
 
 export async function updateUserRole(formData: FormData) {
   const auth = await requireApiActor(["admin"]);
-  if ("error" in auth) redirect("/sign-in");
+  if ("error" in auth) redirect("/?error=unavailable");
   const parsed = roleChangeSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) redirect("/admin/users?error=invalid_role_change");
   if (parsed.data.userId === auth.user.id) redirect("/admin/users?error=self_role_change_blocked");

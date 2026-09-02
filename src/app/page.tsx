@@ -35,7 +35,7 @@ export default async function HomePage() {
 
         <section><div className="section-title"><span className="mono">04</span><h2>Active pipeline</h2></div><div className="table-wrap"><table><caption className="sr-only">Active sales opportunities</caption><thead><tr><th>Account</th><th>Opportunity</th><th>Owner</th><th>Stage</th><th>Value</th><th>Probability</th><th>Close</th><th>Next step</th><th>Health</th></tr></thead><tbody>{deals.map((deal) => <tr key={`${deal.account}-${deal.opportunity}`}><td><strong>{deal.account}</strong>{deal.attention && <div className="chips"><span className="chip orange">{deal.attention}</span></div>}</td><td>{deal.id ? <Link href={`/deals/${deal.id}`}><strong>{deal.opportunity}</strong></Link> : deal.opportunity}</td><td>{deal.owner}</td><td>{deal.stage}</td><td>{deal.value}</td><td>{deal.probability}%</td><td>{deal.closeDate}</td><td>{deal.nextStep}</td><td>{deal.health >= 75 ? <CheckCircle2 size={18} /> : <Clock3 size={18} />} {deal.health}/100</td></tr>)}</tbody></table></div><div className="card-actions"><Link className="button dark" href="/pipeline">Open full pipeline</Link></div></section>
 
-        <p className="footer-note mono">Supabase-backed when configured · Microsoft Entra sign-in available at /sign-in</p>
+        <p className="footer-note mono">Supabase-backed when configured · Open access, no sign-in required</p>
       </div>
     </main>
   );

@@ -18,7 +18,7 @@ function formValues(formData: FormData) {
 
 export async function createGtmBrief(formData: FormData) {
   const auth = await requireApiActor(["seller", "manager", "admin"]);
-  if ("error" in auth) redirect("/sign-in");
+  if ("error" in auth) redirect("/?error=unavailable");
   const parsed = gtmBriefInputSchema.safeParse(formValues(formData));
   if (!parsed.success) redirect("/gtm?error=invalid_brief");
   const structuredBrief = buildStructuredLeadSearchBrief(parsed.data);
@@ -45,7 +45,7 @@ export async function createGtmBrief(formData: FormData) {
 
 export async function approveGtmBrief(formData: FormData) {
   const auth = await requireApiActor(["seller", "manager", "admin"]);
-  if ("error" in auth) redirect("/sign-in");
+  if ("error" in auth) redirect("/?error=unavailable");
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) redirect("/gtm?error=invalid_brief");
   const { data, error } = await auth.supabase.from("gtm_briefs")
@@ -58,7 +58,7 @@ export async function approveGtmBrief(formData: FormData) {
 
 export async function dispatchApprovedGtmBrief(formData: FormData) {
   const auth = await requireApiActor(["seller", "manager", "admin"]);
-  if ("error" in auth) redirect("/sign-in");
+  if ("error" in auth) redirect("/?error=unavailable");
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) redirect("/gtm?error=invalid_brief");
   if (process.env.EXPLEE_AUTOGTM_ENABLED !== "true") redirect(`/gtm?brief=${id.data}&error=dispatch_disabled`);
@@ -117,7 +117,7 @@ function syntheticLeads(briefId: string, structured: ReturnType<typeof buildStru
 
 export async function generateSyntheticGtmResults(formData: FormData) {
   const auth = await requireApiActor(["seller", "manager", "admin"]);
-  if ("error" in auth) redirect("/sign-in");
+  if ("error" in auth) redirect("/?error=unavailable");
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) redirect("/gtm?error=invalid_brief");
   const { data: brief } = await auth.supabase.from("gtm_briefs")
@@ -158,7 +158,7 @@ export async function generateSyntheticGtmResults(formData: FormData) {
 
 export async function reviewGtmLead(formData: FormData) {
   const auth = await requireApiActor(["seller", "manager", "admin"]);
-  if ("error" in auth) redirect("/sign-in");
+  if ("error" in auth) redirect("/?error=unavailable");
   const parsed = z.object({ id: idSchema, decision: z.enum(["approved", "rejected"]) }).safeParse(formValues(formData));
   if (!parsed.success) redirect("/gtm?error=invalid_review");
   const { data, error } = await auth.supabase.from("gtm_lead_candidates")
