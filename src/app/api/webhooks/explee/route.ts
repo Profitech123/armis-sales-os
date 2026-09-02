@@ -56,8 +56,26 @@ export async function POST(request: Request) {
     status: "processing",
     candidate_count: payload.leads.length,
   });
-  if (eventError?.code === "23505") return apiError("REPLAY_REJECTED", 409);
-  if (eventError) return apiError("DATA_ACCESS_FAILED", 500);
+  if (eventError) {
+    if (eventError.code !== "23505") return apiError("DATA_ACCESS_FAILED", 500);
+
+    // batch_id already exists: either a genuine duplicate delivery, or a
+    // previous attempt that failed and n8n is now retrying with the same
+    // batchId. Only reclaim rows still marked "failed" for retry, mirroring
+    // the Fireflies webhook's retry-reclaim logic (src/app/api/webhooks/fireflies/route.ts).
+    const { data: existing } = await admin.from("gtm_ingestion_events").select("status").eq("batch_id", payload.batchId).maybeSingle();
+    if (existing?.status === "processed") return Response.json({ accepted: true, candidateCount: 0, duplicate: true }, { status: 202 });
+    if (existing?.status !== "failed") return apiError("REPLAY_REJECTED", 409);
+
+    const { data: claimedRetry } = await admin
+      .from("gtm_ingestion_events")
+      .update({ status: "processing", candidate_count: payload.leads.length, error_code: null, processed_at: null })
+      .eq("batch_id", payload.batchId)
+      .eq("status", "failed")
+      .select("batch_id")
+      .maybeSingle();
+    if (!claimedRetry) return apiError("REPLAY_REJECTED", 409);
+  }
 
   try {
     const { data: existing, error: existingError } = await admin.from("gtm_lead_candidates")

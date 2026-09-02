@@ -71,17 +71,24 @@ export async function analyzeTranscript(
 
   let completion;
   try {
-    completion = await client.chat.completions.create({
-      model: openRouterModel(),
-      max_tokens: 2048,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: `Meeting title: ${context.title}\nAttendees: ${JSON.stringify(context.attendees)}\n\nTranscript:\n${transcript}`,
-        },
-      ],
-    });
+    completion = await client.chat.completions.create(
+      {
+        model: openRouterModel(),
+        max_tokens: 2048,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `Meeting title: ${context.title}\nAttendees: ${JSON.stringify(context.attendees)}\n\nTranscript:\n${transcript}`,
+          },
+        ],
+      },
+      // Without an explicit timeout this call inherits the SDK's 10-minute
+      // default, which can leave the caller's webhook_events row stuck in
+      // "processing" (past the platform's own function timeout) for the
+      // whole 10 minutes before the row becomes retriable.
+      { timeout: 60_000 },
+    );
   } catch (error) {
     throw new TranscriptAnalysisError("OpenRouter API request failed", error);
   }

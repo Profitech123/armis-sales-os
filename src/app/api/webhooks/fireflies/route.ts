@@ -106,6 +106,11 @@ async function fetchFirefliesTranscript(transcriptId: string): Promise<string | 
         }`,
         variables: { id: transcriptId },
       }),
+      // Without a bound, a hung Fireflies response leaves the caller's
+      // webhook_events row stuck in "processing" until the platform's own
+      // function timeout kills the request — see the same rationale on the
+      // OpenRouter call in src/lib/ai/transcript-analysis.ts.
+      signal: AbortSignal.timeout(15_000),
     });
     if (!response.ok) return null;
     const json: unknown = await response.json();
@@ -179,11 +184,16 @@ async function runAnalysisPipeline(payload: z.infer<typeof payloadSchema>): Prom
     return { stored: false, reason: "owner_not_found" };
   }
 
-  const { data: profile } = await admin
+  const { data: profile, error: profileError } = await admin
     .from("profiles")
     .select("id")
     .eq("email", hostEmail.toLowerCase())
     .maybeSingle();
+
+  if (profileError) {
+    await markEventFailed(`profile lookup failed: ${profileError.message}`);
+    return { stored: false, reason: "profile_lookup_failed" };
+  }
 
   if (!profile) {
     await markEventFailed("no matching profile for host email");
