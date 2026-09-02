@@ -18,7 +18,7 @@ export default async function HomePage() {
             <p className="subtitle">The operating layer behind Armis sales execution. It understands the pipeline, meetings, commitments, proposals and tenders—and keeps the organization ready to act.</p>
           </div>
           <aside className="sync-panel mono">
-            <p>Signed in as {actor.displayName ?? actor.email}</p><p>{deals.length} visible opportunities</p><p>{activities.length} open activities</p><p>{overdue.length} overdue</p>
+            <p>Active as {actor.displayName ?? actor.email}</p><p>{deals.length} visible opportunities</p><p>{activities.length} open activities</p><p>{overdue.length} overdue</p>
           </aside>
         </header>
 
