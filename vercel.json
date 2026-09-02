@@ -3,6 +3,6 @@
   "framework": "nextjs",
   "regions": ["dxb1"],
   "crons": [
-    { "path": "/api/health", "schedule": "*/15 * * * *" }
+    { "path": "/api/health", "schedule": "0 0 * * *" }
   ]
 }
