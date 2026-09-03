@@ -27,7 +27,7 @@ export async function getContactDetail(id: string): Promise<ContactDetail|null> 
   if (!isUuid(id)) return null;
   const supabase = await client();
   const { data, error } = await supabase.from("contacts")
-    .select("id,owner_user_id,account_id,first_name,last_name,email,phone,job_title,relationship_role,archived_at,record_version,created_at,updated_at,accounts(id,name),activities(id,kind,subject,status,priority,due_at,created_at),opportunity_contacts(opportunity_id,role,opportunities(id,name,stage))")
+    .select("id,owner_user_id,account_id,first_name,last_name,email,phone,job_title,relationship_role,archived_at,record_version,created_at,updated_at,accounts(id,name),activities(id,kind,subject,status,priority,due_at,created_at),opportunity_contacts!opportunity_contacts_contact_id_fkey(opportunity_id,role,opportunities!opportunity_contacts_opportunity_id_fkey(id,name,stage))")
     .eq("id", id).maybeSingle();
   if (error) throw new Error(`Unable to load contact: ${error.message}`);
   return data as ContactDetail|null;

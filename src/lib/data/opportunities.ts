@@ -136,7 +136,7 @@ export async function getOpportunity(id: string): Promise<OpportunityDetail | nu
   const { data, error } = await supabase
     .from("opportunities")
     .select(
-      "id,owner_user_id,account_id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,record_version,loss_reason_key,accounts(name),meetings(id,title,started_at),proposals(id,title,status,version),opportunity_contacts(contact_id,role,contacts(id,first_name,last_name))"
+      "id,owner_user_id,account_id,name,owner_name,stage,value_amount,probability,expected_close_date,next_step,health_score,attention,record_version,loss_reason_key,accounts(name),meetings(id,title,started_at),proposals(id,title,status,version),opportunity_contacts!opportunity_contacts_opportunity_id_fkey(contact_id,role,contacts!opportunity_contacts_contact_id_fkey(id,first_name,last_name))"
     )
     .eq("id", id)
     .maybeSingle();
